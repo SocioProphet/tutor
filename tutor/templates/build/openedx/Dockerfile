@@ -61,6 +61,12 @@ RUN git config --global user.email "tutor@overhang.io" \
 FROM scratch as edx-platform
 COPY --from=code /openedx/edx-platform /
 
+
+{# Create empty layers for all bind-mounted edx-platform python requirements #}
+{% for req in iter_mounted_edx_platform_python_requirements(MOUNTS) %}
+FROM scratch as req-{{ req }}
+{% endfor %}
+
 ###### Download extra locales to /openedx/locale/contrib/locale
 FROM minimal as locales
 ARG OPENEDX_I18N_VERSION={{ OPENEDX_COMMON_VERSION }}
@@ -111,6 +117,12 @@ RUN {% if is_buildkit_enabled() %}--mount=type=cache,target=/openedx/.cache/pip,
   && pip install -r ./private.txt
 
 {% for extra_requirements in OPENEDX_EXTRA_PIP_REQUIREMENTS %}RUN {% if is_buildkit_enabled() %}--mount=type=cache,target=/openedx/.cache/pip,sharing=shared {% endif %}pip install '{{ extra_requirements }}'
+{% endfor %}
+
+{% for req in iter_mounted_edx_platform_python_requirements(MOUNTS) %}
+# Install local copy of {{ req }}
+COPY --from=req-{{ req }} --chown=app:app / /openedx/requirements/{{ req }}
+RUN pip install -e /openedx/requirements/{{ req }}
 {% endfor %}
 
 ###### Install nodejs with nodeenv in /openedx/nodeenv

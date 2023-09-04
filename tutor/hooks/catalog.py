@@ -258,6 +258,26 @@ class Filters:
     #:   arguments. Note that these arguments do not include the leading ``docker`` command.
     DOCKER_BUILD_COMMAND: Filter[list[str], []] = Filter()
 
+    #: List of python package names that can be potentially installed next to edx-platform.
+    #: Whenever a user runs: ``tutor mounts add /path/to/name`` "name" will be matched to
+    #: the regular expressions in this filter. If it matches, then the directory will be
+    #: automatically bind-mounted in the "openedx" Docker image at build time and run
+    #: time. They will be mounted in ``/openedx/requirements/<name>``. Then, ``pip install
+    #: -e .`` will be run in this directory at build-time. And the same host directory
+    #: will be bind-mounted in that location at run time. This allows users to
+    #: transparently work on edx-platform dependencies.
+    #:
+    #: By default, xblocks and some common packages are already present in this
+    #: filter. Add your own edx-platform dependencies to this filter to make it easier for
+    #: users to work on edx-platform dependencies.
+    #:
+    #: See the list of all edx-platform base requirements here:
+    #: https://github.com/openedx/edx-platform/blob/master/requirements/edx/base.txt
+    #:
+    #: :parameter list[str] names: Add here simple names ("my-package") or regular
+    #:   expressions.
+    EDX_PLATFORM_PYTHON_PACKAGES: Filter[list[str], []] = Filter()
+
     #: List of patches that should be inserted in a given location of the templates.
     #:
     #: :parameter list[tuple[str, str]] patches: pairs of (name, content) tuples. Use this
@@ -338,6 +358,7 @@ class Filters:
     #: - ``is_buildkit_enabled``: a boolean function that indicates whether BuildKit is available on the host.
     #: - ``iter_values_named``: a function to iterate on variables that start or end with a given string.
     #: - ``iter_mounts``: a function that yields compose-compatible bind-mounts for any given service.
+    #: - ``iter_mounted_edx_platform_python_requirements``: iterate on bind-mounted edx-platform python package names.
     #: - ``patch``: a function to incorporate extra content into a template.
     #:
     #: :parameter filters: list of (name, value) tuples.

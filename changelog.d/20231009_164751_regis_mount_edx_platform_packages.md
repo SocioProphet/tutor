@@ -1,0 +1,1 @@
+- [Feature] Make it easy to work on edx-platform Python requirements with `tutor mounts add /path/to/my/package`. (by @regisb)
